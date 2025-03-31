@@ -111,7 +111,7 @@ void relatorio(FILE *arq){
 			aluno.email,
 			aluno.id);
 			
-			printf("==============================\n");
+			printf("\33[31m==============================\33[39m\n");
 		}
 	}
 	
@@ -203,23 +203,23 @@ void lista_disciplina(FILE *arq1, FILE *arq2){
 	}else{
 		rewind(arq1);
 		while(fread(&disc, sizeof(Disciplina), 1, arq1)){
-			printf("Nome: %s\n", disc.nome);
+			printf("Disciplina: %s\n", disc.nome);
 			printf("Carga Horŕaria: %02d:00\n", disc.carga);
 			printf("Código da matéria: %04d\n", disc.cod);
-			printf("--------------------------\n");
+			printf("\33[33m--------------------------\33[39m\n");
 			printf("ALUNOS MATRICULADOS: \n");
 			rewind(arq2);
-			if(fseek(arq2, 0, SEEK_END)==0 && ftell(arq2)==0)
-				printf("nenhuma matricula registrada\n");
-			else{
-				rewind(arq2);
-				while(fread(&matricula, sizeof(Matricula), 1, arq2)){
-					if(strcmp(disc.nome, matricula.materia)==0){
-						cont++;
-						printf("%d - %s", cont, matricula.aluno);
-					}
+			while(fread(&matricula, sizeof(Matricula), 1, arq2)){
+				if(strcmp(disc.nome, matricula.materia)==0){
+					cont++;
+					printf("%d - %s", cont, matricula.aluno);
 				}
 			}
+			if(cont==0){
+				printf("nenhuma matricula registrada");
+			}
+			printf("\n\33[31m=============================\33[39m\n");
+			cont=0;
 		}
 	}
 	printf("\n");
