@@ -47,6 +47,7 @@ int interface(){
 	printf("5 - Listar Disciplinas\n");
 	printf("6 - Buscar\n");
 	printf("0 - Salvar e sair\n");
+	printf("-1 - Apagar os dados\n");
 	printf("ESCOLHA UMA OPÇÃO: ");
 	int opt;
 	scanf(" %d",&opt);
@@ -94,6 +95,7 @@ void relatorio(FILE *arq){
 		
 	Aluno aluno;
 	printf("==RELATÓRIO DE DISCENTES==\n\n");
+	rewind(arq);
 	while(fread(&aluno, sizeof(Aluno), 1, arq)==1){
 		printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
 		aluno.nome, 
@@ -220,6 +222,7 @@ void busca(FILE *arq){
 	int a=0;
 	printf("Quem deseja buscar? ");	
 	scanf(" %[^\n]s", alvo);
+	rewind(arq);
 	while(fread(&aluno, sizeof(Aluno), 1, arq)){
 		if(strcmp(alvo, aluno.nome)==0){
 			printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
@@ -278,6 +281,10 @@ int main(){
 					break;
 			case 0: fechar_arquivo(arq, arq1, arq2);
 					return 0;
+			case -1: remove("alunos.dat");
+					remove("disciplina.dat");
+					remove("matricula.dat");
+					break;
 			default: printf("Opção invalida...");
 					break;
 			
