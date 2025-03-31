@@ -48,7 +48,7 @@ int interface(){
 	printf("6 - Buscar\n");
 	printf("0 - Salvar e sair\n");
 	printf("-1 - Apagar os dados\n");
-	printf("ESCOLHA UMA OPÇÃO: ");
+	printf("\nESCOLHA UMA OPÇÃO: ");
 	int opt;
 	scanf(" %d",&opt);
 	system("clear");
@@ -95,19 +95,26 @@ void relatorio(FILE *arq){
 		
 	Aluno aluno;
 	printf("==RELATÓRIO DE DISCENTES==\n\n");
-	rewind(arq);
-	while(fread(&aluno, sizeof(Aluno), 1, arq)==1){
-		printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
-		aluno.nome, 
-		aluno.idade, 
-		aluno.curso,
-		aluno.end,
-		aluno.telefone,
-		aluno.email,
-		aluno.id);
-		
-		printf("==============================");
+	if(fseek(arq, 0, SEEK_END)==0 && ftell(arq)==0){
+		printf("nenhum cadastro realizado\n");
+		enter();
+		return;
+	}else{
+		rewind(arq);
+		while(fread(&aluno, sizeof(Aluno), 1, arq)==1){
+			printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
+			aluno.nome, 
+			aluno.idade, 
+			aluno.curso,
+			aluno.end,
+			aluno.telefone,
+			aluno.email,
+			aluno.id);
+			
+			printf("==============================");
+		}
 	}
+	
 	enter();
 }
 
@@ -190,26 +197,30 @@ void lista_disciplina(FILE *arq1, FILE *arq2){
 	int cont=0;
 	
 	printf("==LISTA DE DISCIPILNAS==\n\n");
-	rewind(arq1);
-	
-	while(fread(&disc, sizeof(Disciplina), 1, arq1)){
-		printf("Nome: %s\n", disc.nome);
-		printf("Carga Horŕaria: %02d:00\n", disc.carga);
-		printf("Código da matéria: %d\n", disc.cod);
-		printf("--------------------------\n");
-		printf("ALUNOS MATRICULADOS: \n");
-		rewind(arq2);
-		if(fseek(arq2, 0, SEEK_END)==0 && ftell(arq2)==0)
-			printf("nenhuma matricula registrada\n");
-		else{
-			while(fread(&matricula, sizeof(Matricula), 1, arq2)){
-				if(strcmp(disc.nome, matricula.materia)==0){
-					cont++;
-					printf("%d - %s", cont, matricula.aluno);
+	if(fseek(arq1, 0, SEEK_END)==0 && ftell(arq1)==0){
+		printf("nenhuma disciplina cadastrada\n");
+		enter();
+		return;
+	}else{
+		rewind(arq1);
+		while(fread(&disc, sizeof(Disciplina), 1, arq1)){
+			printf("Nome: %s\n", disc.nome);
+			printf("Carga Horŕaria: %02d:00\n", disc.carga);
+			printf("Código da matéria: %d\n", disc.cod);
+			printf("--------------------------\n");
+			printf("ALUNOS MATRICULADOS: \n");
+			rewind(arq2);
+			if(fseek(arq2, 0, SEEK_END)==0 && ftell(arq2)==0)
+				printf("nenhuma matricula registrada\n");
+			else{
+				while(fread(&matricula, sizeof(Matricula), 1, arq2)){
+					if(strcmp(disc.nome, matricula.materia)==0){
+						cont++;
+						printf("%d - %s", cont, matricula.aluno);
+					}
 				}
 			}
 		}
-		
 	}
 	printf("\n");
 	enter();
@@ -259,6 +270,22 @@ void fechar_arquivo(FILE *arq, FILE *arq1, FILE *arq2){
 	fclose(arq2);
 }
 
+void apagar_arquivo(){
+	int a;
+	printf("TEM CERTEZA DA SUA DECISÃO? (==1 - sim, !=1 - não)"); scanf(" %d", &a);
+	if(a==1){
+		remove("alunos.dat");
+		remove("disciplina.dat");
+		remove("matricula.dat");
+	}else{
+		printf("OS DADOS NÃO FORAM APAGADOS.\n");
+		fflush(stdout);
+		system("sleep 2");
+		system ("clear");
+	}
+	
+}
+
 int main(){
 	srand(time(NULL));
 	FILE *arq = abrir_arquivo("alunos.dat","a+b");
@@ -281,9 +308,7 @@ int main(){
 					break;
 			case 0: fechar_arquivo(arq, arq1, arq2);
 					return 0;
-			case -1: remove("alunos.dat");
-					remove("disciplina.dat");
-					remove("matricula.dat");
+			case -1: apagar_arquivo();
 					break;
 			default: printf("Opção invalida...");
 					break;
