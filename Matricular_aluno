@@ -54,10 +54,7 @@ system("clear");
 return opt;
 }
 
-void cad_aluno(){
-FILE *arq = fopen("alunos.dat","a+b");
-if(abrir(arq))
-return;
+void cad_aluno(FILE *arq){
 
 Aluno aluno;
 char temp[20];
@@ -66,6 +63,7 @@ int z=0;
 printf("==Cadastro==\n\n");
 printf("Digite o nome do aluno: ");
 scanf(" %[^\n]s", temp);
+rewind(arq);
 while(fread(&aluno, sizeof(Aluno), 1, arq)){
 if(strcmp(temp, aluno.nome)==0){
 printf("ESSE NOME JÁ ESTÁ REGISTRADO (TENTE USAR O SOBRENOME)\n");
@@ -82,24 +80,22 @@ printf("Digite endereço do aluno: "); scanf(" %[^\n]s", aluno.end);
 printf("Digite telefone do aluno: "); scanf(" %[^\n]s", aluno.telefone);
 printf("Digite email do aluno: "); scanf(" %[^\n]s", aluno.email);
 
-aluno.id = 10000 + rand()%100000;
-
+aluno.id = rand()%100000;
+fseek(arq, 0, SEEK_END);
 if(fwrite(&aluno, sizeof(Aluno), 1, arq)){
 printf("\nCADASTRO REALIZADO COM SUCESSO\n");
 }
-fclose(arq);
+
 enter();
 }
 
-void relatorio(){
-FILE *arq = fopen("alunos.dat","rb");
-if(abrir(arq))
-return;
+void relatorio(FILE *arq){
+
 
 Aluno aluno;
 printf("==RELATÓRIO DE DISCENTES==\n\n");
 while(fread(&aluno, sizeof(Aluno), 1, arq)==1){
-printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %d\n",
+printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %05d\n",
 aluno.nome,
 aluno.idade,
 aluno.curso,
@@ -113,10 +109,7 @@ printf("==============================");
 enter();
 }
 
-void cad_disciplina(){
-FILE *arq = fopen("disciplinas.dat","ab");
-if(abrir(arq))
-return;
+void cad_disciplina(FILE *arq1){
 
 Disciplina disc;
 printf("==CADASTRO DE DISCIPLINA==\n\n");
@@ -127,21 +120,15 @@ scanf(" %d", &disc.carga);
 printf("Digite o ID da disciplina: ");
 scanf(" %d", &disc.cod);
 
-if(fwrite(&disc, sizeof(Disciplina), 1, arq))
+if(fwrite(&disc, sizeof(Disciplina), 1, arq1))
 printf("CADASTRO REALIZADO COM SUCESSO");
 else
 printf("ERRO AO CADASTRAR A DISCIPLINA");
 
 enter();
-fclose(arq);
 }
 
-void matricular(){
-FILE *arq = fopen("matricula.dat","ab");
-FILE *arq1 = fopen("alunos.dat","rb");
-FILE *arq2 = fopen("disciplinas.dat","rb");
-if(abrir(arq) || abrir(arq1) || abrir(arq2))
-return;
+void matricular(FILE *arq, FILE *arq1, FILE *arq2){
 
 Matricula matricula;
 Aluno aluno;
@@ -155,7 +142,8 @@ printf("==MATRICULA==\n\n");
 do{
 printf("Digite o nome do aluno: ");
 scanf(" %[^\n]s", alvo1);
-while(fread(&aluno, sizeof(Aluno), 1, arq1)){
+rewind(arq);
+while(fread(&aluno, sizeof(Aluno), 1, arq)){
 if(strcmp(alvo1, aluno.nome)==0){
 z=1;
 break;
@@ -171,7 +159,8 @@ break;
 do{
 printf("Digite o nome da disciplina: ");
 scanf(" %[^\n]s", alvo2);
-while(fread(&disc, sizeof(Disciplina), 1, arq2)){
+rewind(arq1);
+while(fread(&disc, sizeof(Disciplina), 1, arq1)){
 if(strcmp(alvo2, disc.nome)==0){
 z=1;
 break;
@@ -185,48 +174,47 @@ break;
 
 strcpy(matricula.aluno ,alvo1);
 strcpy(matricula.materia, alvo2);
-
-fwrite(&matricula, sizeof(Matricula), 1, arq);
-fclose(arq);
-fclose(arq1);
-fclose(arq2);
+fseek(arq2, 0, SEEK_END);
+fwrite(&matricula, sizeof(Matricula), 1, arq2);
 
 printf("MATRICULA REALIZADA COM SUCESSO\n");
 enter();
 }
 
-void lista_disciplina(){
-FILE *arq = fopen("disciplinas.dat", "rb");
-FILE *arq1 = fopen("matricula.dat","rb");
-if(abrir(arq))
-return;
+void lista_disciplina(FILE *arq1, FILE *arq2){
 
 Disciplina disc;
 Matricula matricula;
 int cont=0;
+
 printf("==LISTA DE DISCIPILNAS==\n\n");
-while(fread(&disc, sizeof(Disciplina), 1, arq)){
+rewind(arq1);
+
+while(fread(&disc, sizeof(Disciplina), 1, arq1)){
 printf("Nome: %s\n", disc.nome);
 printf("Carga Horŕaria: %02d:00\n", disc.carga);
 printf("Código da matéria: %d\n", disc.cod);
 printf("--------------------------\n");
 printf("ALUNOS MATRICULADOS: \n");
-rewind(arq1);
-while(fread(&matricula, sizeof(Matricula), 1, arq1)){
+rewind(arq2);
+if(fseek(arq2, 0, SEEK_END)==0 && ftell(arq2)==0)
+printf("nenhuma matricula registrada\n");
+else{
+while(fread(&matricula, sizeof(Matricula), 1, arq2)){
 if(strcmp(disc.nome, matricula.materia)==0){
 cont++;
 printf("%d - %s", cont, matricula.aluno);
 }
 }
 }
+
+}
 printf("\n");
 enter();
 }
 
-void busca(){
-FILE *arq = fopen("alunos.dat","rb");
-if(abrir(arq))
-return;
+void busca(FILE *arq){
+
 Aluno aluno;
 char alvo[20];
 int a=0;
@@ -234,7 +222,7 @@ printf("Quem deseja buscar? ");
 scanf(" %[^\n]s", alvo);
 while(fread(&aluno, sizeof(Aluno), 1, arq)){
 if(strcmp(alvo, aluno.nome)==0){
-printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %d\n",
+printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %05d\n",
 aluno.nome,
 aluno.idade,
 aluno.curso,
@@ -253,24 +241,41 @@ printf("Aluno não encontrado\n\n");
 enter();
 }
 
+FILE *abrir_arquivo(char *nome, char *modo){
+FILE *arq = fopen(nome, modo);
+if(!arq)
+printf("ERRO AO ABRIR O ARQUIVO\n");
+return arq;
+}
+
+void fechar_arquivo(FILE *arq, FILE *arq1, FILE *arq2){
+fclose(arq);
+fclose(arq1);
+fclose(arq2);
+}
+
 int main(){
 srand(time(NULL));
+FILE *arq = abrir_arquivo("alunos.dat","a+b");
+FILE *arq1 = abrir_arquivo("disciplina.dat","a+b");
+FILE *arq2 = abrir_arquivo("matricula.dat","a+b");
 
 do{
 switch(interface()){
-case 1: cad_aluno();
+case 1: cad_aluno(arq);
 break;
-case 2: relatorio();
+case 2: relatorio(arq);
 break;
-case 3: cad_disciplina();
+case 3: cad_disciplina(arq1);
 break;
-case 4: matricular();
+case 4: matricular(arq, arq1, arq2);
 break;
-case 5: lista_disciplina();
+case 5: lista_disciplina(arq1, arq2);
 break;
-case 6: busca();
+case 6: busca(arq);
 break;
-case 0: return 0;
+case 0: fechar_arquivo(arq, arq1, arq2);
+return 0;
 default: printf("Opção invalida...");
 break;
 
