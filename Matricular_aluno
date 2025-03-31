@@ -45,7 +45,7 @@ int interface(){
 	printf("3 - Cadastrar Disciplina\n");
 	printf("4 - Matricular Discente\n");
 	printf("5 - Listar Disciplinas\n");
-	printf("6 - Buscar e Alterar\n");
+	printf("6 - Buscar\n");
 	printf("0 - Salvar e sair\n");
 	printf("ESCOLHA UMA OPÇÃO: ");
 	int opt;
@@ -80,7 +80,7 @@ void cad_aluno(FILE *arq){
 	printf("Digite telefone do aluno: "); scanf(" %[^\n]s", aluno.telefone);
 	printf("Digite email do aluno: "); scanf(" %[^\n]s", aluno.email);
 	
-	aluno.id = rand()%100000;
+	aluno.id = rand()%1000000;
 	fseek(arq, 0, SEEK_END);
 	if(fwrite(&aluno, sizeof(Aluno), 1, arq)){
 		printf("\nCADASTRO REALIZADO COM SUCESSO\n");
@@ -95,7 +95,7 @@ void relatorio(FILE *arq){
 	Aluno aluno;
 	printf("==RELATÓRIO DE DISCENTES==\n\n");
 	while(fread(&aluno, sizeof(Aluno), 1, arq)==1){
-		printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %05d\n",
+		printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
 		aluno.nome, 
 		aluno.idade, 
 		aluno.curso,
@@ -222,7 +222,7 @@ void busca(FILE *arq){
 	scanf(" %[^\n]s", alvo);
 	while(fread(&aluno, sizeof(Aluno), 1, arq)){
 		if(strcmp(alvo, aluno.nome)==0){
-			printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %05d\n",
+			printf("Nome %s\nIdade: %d\nCurso: %s\nEndereço: %s\nTelefone: %s\nEmail: %s\nCódigo de Matrícula: %07d\n",
 			aluno.nome, 
 			aluno.idade, 
 			aluno.curso,
@@ -243,8 +243,10 @@ void busca(FILE *arq){
 
 FILE *abrir_arquivo(char *nome, char *modo){
 	FILE *arq = fopen(nome, modo);
-	if(!arq)
+	if(!arq){
 		printf("ERRO AO ABRIR O ARQUIVO\n");
+		exit(1);
+	}
 	return arq;
 }
 
